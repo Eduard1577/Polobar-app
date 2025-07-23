@@ -11,6 +11,15 @@
     </style>
 </head>
 <body>
+    <script>
+    const claveCorrecta = "1234";
+    const ingreso = prompt("🔐 Ingresa la clave para acceder al panel de administración:");
+
+    if (ingreso !== claveCorrecta) {
+        alert("❌ Clave incorrecta. No tienes acceso.");
+        document.body.innerHTML = ""; // Borra el contenido si la clave está mal
+    }
+</script>
     <h1>Panel de Administración</h1>
     <div class="card"><a href="edwin.html">Edwin Calderón - $200.000</a></div>
     <div class="card"><a href="camilo.html">Camilo Mahecha - $150.000</a></div>
