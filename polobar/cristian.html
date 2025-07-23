@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cristian Sotelo - Polobar</title>
+    <style>
+        body { background-color: #000; color: #fff; font-family: Arial, sans-serif; padding: 20px; }
+        .card { background: #8B0000; border-radius: 12px; padding: 15px; margin: 10px 0; }
+        input, button { padding: 10px; margin: 5px 0; width: 100%; border-radius: 8px; border: none; }
+        button { background-color: #fff; color: #000; font-weight: bold; }
+        .registro { font-size: 14px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Cristian Sotelo</h2>
+    <h3>Saldo inicial: $160.000</h3>
+    <input type="number" id="valor" placeholder="Ingrese valor">
+    <button onclick="registrar('abono')">Registrar Abono</button>
+    <button onclick="registrar('gasto')">Registrar Gasto</button>
+    <h3>Historial:</h3>
+    <div id="historial"></div>
+
+    <script>
+        const clave = "cristian_historial";
+
+        function cargarHistorial() {
+            const data = JSON.parse(localStorage.getItem(clave)) || [];
+            const cont = document.getElementById('historial');
+            cont.innerHTML = data.map(item => `
+                <div class='card'>
+                    <b>${item.tipo}:</b> ${item.valor} <br>
+                    <small>${item.fecha}</small>
+                </div>
+            `).join('');
+        }
+
+        function registrar(tipo) {
+            const valor = parseFloat(document.getElementById('valor').value);
+            if (isNaN(valor) || valor <= 0) {
+                alert("Ingrese un valor válido");
+                return;
+            }
+            const fecha = new Date().toLocaleString();
+            const nuevo = { tipo, valor, fecha };
+            const data = JSON.parse(localStorage.getItem(clave)) || [];
+            data.unshift(nuevo);
+            localStorage.setItem(clave, JSON.stringify(data));
+            document.getElementById('valor').value = "";
+            cargarHistorial();
+        }
+
+        window.onload = cargarHistorial;
+    </script>
+</body>
+</html>
