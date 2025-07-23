@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cristian Sotelo - Polobar</title>
+    <style>
+        body { background-color: #000; color: #fff; font-family: Arial, sans-serif; padding: 20px; }
+        .card { background: #8B0000; border-radius: 16px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        h1 { color: #fff; }
+        .log { margin-top: 20px; }
+        input, button { padding: 8px; margin: 4px 0; width: 100%; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Polobar</h1>
+        <p>Cliente: <strong>Cristian Sotelo</strong></p>
+        <p>Monto asignado: <strong>$160.000</strong></p>
+        <p>Fecha de corte: 28 de cada mes</p>
+        <p>Fecha límite de pago: 15 del mes siguiente</p>
+        <div class="log">
+            <h3>Registrar movimiento</h3>
+            <input id="desc" placeholder="Descripción (abono o gasto)">
+            <input id="valor" placeholder="Valor ($)" type="number">
+            <button onclick="registrar()">Registrar</button>
+            <ul id="historial"></ul>
+        </div>
+    </div>
+<script>
+    const historial = JSON.parse(localStorage.getItem("Cristian Sotelo_historial") || "[]");
+    const ul = document.getElementById("historial");
+    function mostrar() {
+        ul.innerHTML = "";
+        historial.forEach(entry => {
+            const li = document.createElement("li");
+            li.textContent = `[${entry.fecha}] ${entry.desc}: $${entry.valor}`;
+            ul.appendChild(li);
+        });
+    }
+    function registrar() {
+        const desc = document.getElementById("desc").value;
+        const valor = document.getElementById("valor").value;
+        if (desc && valor) {
+            const fecha = new Date().toLocaleString();
+            historial.push({ desc, valor, fecha });
+            localStorage.setItem("Cristian Sotelo_historial", JSON.stringify(historial));
+            mostrar();
+            document.getElementById("desc").value = "";
+            document.getElementById("valor").value = "";
+        }
+    }
+    mostrar();
+</script>
+</body>
+</html>
