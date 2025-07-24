@@ -2,98 +2,81 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cliente - Polobar</title>
   <style>
     body { background: #111; color: white; font-family: sans-serif; padding: 20px; }
-    h1 { color: #ff5050; }
-    .saldo { font-size: 1.5em; margin-bottom: 20px; }
-    .movimiento { background: #222; padding: 10px; margin-bottom: 10px; border-radius: 6px; }
-    .movimiento span { display: block; }
-    .entrada { color: #00cc00; }
-    .salida { color: #cc0000; }
-    input, button { padding: 8px; margin: 5px 0; border-radius: 6px; border: none; }
-    button { cursor: pointer; }
-    .volver { background: #444; color: white; margin-top: 20px; display: inline-block; }
+    h1, h2 { color: #ff5050; }
+    button { margin: 6px; padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; }
+    .abono { background: #008800; color: white; }
+    .consumo { background: #aa0000; color: white; }
+    .movimientos { margin-top: 20px; background: #222; padding: 15px; border-radius: 8px; }
+    .mov { margin-bottom: 8px; padding: 6px; border-bottom: 1px solid #333; }
+    .back { color: #ccc; display: inline-block; margin-bottom: 15px; }
   </style>
 </head>
 <body>
-
+  <a href="index.html" class="back">← Volver</a>
   <h1 id="nombreCliente">Cliente</h1>
-  <div class="saldo" id="saldoActual">$0</div>
+  <h2>Saldo actual: $<span id="saldo">0</span></h2>
+  <button class="abono" onclick="registrarMovimiento('abono')">➕ Abonar</button>
+  <button class="consumo" onclick="registrarMovimiento('consumo')">➖ Consumir</button>
 
-  <input type="number" id="monto" placeholder="Valor del movimiento" />
-  <input type="text" id="descripcion" placeholder="Descripción (opcional)" />
-  <br/>
-  <button onclick="agregarMovimiento(true)" style="background:#00cc00;">➕ Abonar</button>
-  <button onclick="agregarMovimiento(false)" style="background:#cc0000;">➖ Cobrar</button>
-
-  <h2>Historial</h2>
-  <div id="historial"></div>
-
-  <button onclick="window.location.href='index.html'" class="volver">⬅️ Volver</button>
+  <div class="movimientos">
+    <h3>Historial de movimientos</h3>
+    <div id="historial"></div>
+  </div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const cliente = params.get("cliente");
+    const cliente = params.get("c");
 
     if (!cliente) {
-      document.body.innerHTML = "<h1 style='color:red;'>❌ Cliente no especificado</h1>";
+      document.body.innerHTML = "<h2 style='color:red'>⚠️ Cliente no especificado</h2>";
       throw new Error("Cliente no especificado");
     }
 
-    const saldoKey = `saldo_${cliente}`;
-    const movKey = `movimientos_${cliente}`;
-    const nombreCliente = cliente.charAt(0).toUpperCase() + cliente.slice(1);
+    document.getElementById("nombreCliente").textContent = "👤 " + cliente.charAt(0).toUpperCase() + cliente.slice(1);
 
-    document.getElementById("nombreCliente").textContent = nombreCliente;
+    function cargarSaldo() {
+      const saldo = localStorage.getItem(`saldo_${cliente}`) || "0";
+      document.getElementById("saldo").textContent = saldo;
+    }
 
-    function actualizarVista() {
-      const saldo = parseInt(localStorage.getItem(saldoKey)) || 0;
-      document.getElementById("saldoActual").textContent = `$${saldo}`;
-
-      const historial = JSON.parse(localStorage.getItem(movKey)) || [];
-      const div = document.getElementById("historial");
-      div.innerHTML = "";
-
-      historial.reverse().forEach(item => {
-        const mov = document.createElement("div");
-        mov.className = "movimiento";
-        mov.innerHTML = `
-          <span class="${item.tipo === 'entrada' ? 'entrada' : 'salida'}">
-            ${item.tipo === 'entrada' ? '➕ Abono' : '➖ Cobro'}: $${item.monto}
-          </span>
-          <span>📝 ${item.descripcion || 'Sin descripción'}</span>
-          <span>📅 ${item.fecha}</span>
-        `;
-        div.appendChild(mov);
+    function cargarHistorial() {
+      const historialDiv = document.getElementById("historial");
+      historialDiv.innerHTML = "";
+      const movimientos = JSON.parse(localStorage.getItem(`movimientos_${cliente}`) || "[]");
+      movimientos.reverse().forEach(mov => {
+        const div = document.createElement("div");
+        div.className = "mov";
+        div.textContent = `${mov.fecha} — ${mov.tipo === "abono" ? "Abono" : "Consumo"}: $${mov.monto}`;
+        historialDiv.appendChild(div);
       });
     }
 
-    function agregarMovimiento(esEntrada) {
-      const monto = parseInt(document.getElementById("monto").value);
-      const descripcion = document.getElementById("descripcion").value;
-      if (isNaN(monto) || monto <= 0) return alert("⚠️ Ingrese un monto válido.");
+    function registrarMovimiento(tipo) {
+      const monto = prompt(`💰 Ingrese el monto del ${tipo === "abono" ? "abono" : "consumo"}:`);
+      if (!monto || isNaN(monto)) return alert("❌ Debes ingresar un número válido.");
+      const montoNum = parseInt(monto);
+      let saldo = parseInt(localStorage.getItem(`saldo_${cliente}`) || "0");
+      if (tipo === "abono") {
+        saldo += montoNum;
+      } else {
+        saldo -= montoNum;
+      }
+      localStorage.setItem(`saldo_${cliente}`, saldo);
 
-      let saldo = parseInt(localStorage.getItem(saldoKey)) || 0;
-      saldo = esEntrada ? saldo + monto : saldo - monto;
-      localStorage.setItem(saldoKey, saldo);
+      const movimientos = JSON.parse(localStorage.getItem(`movimientos_${cliente}`) || "[]");
+      const fecha = new Date().toLocaleString();
+      movimientos.push({ tipo, monto: montoNum, fecha });
+      localStorage.setItem(`movimientos_${cliente}`, JSON.stringify(movimientos));
 
-      const historial = JSON.parse(localStorage.getItem(movKey)) || [];
-      historial.push({
-        tipo: esEntrada ? "entrada" : "salida",
-        monto,
-        descripcion,
-        fecha: new Date().toLocaleString()
-      });
-      localStorage.setItem(movKey, JSON.stringify(historial));
-
-      document.getElementById("monto").value = "";
-      document.getElementById("descripcion").value = "";
-      actualizarVista();
+      cargarSaldo();
+      cargarHistorial();
     }
 
-    actualizarVista();
+    cargarSaldo();
+    cargarHistorial();
   </script>
 </body>
 </html>
