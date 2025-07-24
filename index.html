@@ -2,13 +2,15 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel Polobar</title>
   <style>
     body { background: #111; color: white; font-family: sans-serif; padding: 20px; }
     .card { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
-    .card a { color: #ff5050; text-decoration: none; font-weight: bold; }
+    .card a { color: #ff5050; text-decoration: none; font-weight: bold; display: block; margin-bottom: 8px; }
+    .card button { margin-right: 8px; margin-bottom: 6px; }
     .danger { background: #aa0000; color: white; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; }
+    .edit { background: #5555aa; color: white; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; }
+    .delete { background: #880000; color: white; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; }
     .global-actions button { margin: 6px; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; }
     .clean { background: #4444aa; color: white; }
     .download { background: #008800; color: white; }
@@ -40,28 +42,28 @@
     function renderClientes() {
       const container = document.getElementById("clientes");
       container.innerHTML = "";
-      const claves = Object.keys(localStorage).filter(k => k.startsWith("saldo_"));
-      claves.forEach(clave => {
-        const cliente = clave.replace("saldo_", "");
-        const saldo = localStorage.getItem(clave);
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-          <a href="cliente.html?cliente=${cliente}">👤 ${cliente.charAt(0).toUpperCase() + cliente.slice(1)} — $${saldo}</a><br/>
-          <button onclick="borrarMovimientos('${cliente}')" class="danger">🗑️ Borrar movimientos</button>
-        `;
-        container.appendChild(div);
-      });
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith("saldo_")) {
+          const cliente = key.replace("saldo_", "");
+          const saldo = localStorage.getItem(key);
+          const div = document.createElement("div");
+          div.className = "card";
+          div.innerHTML = `
+            <a href="cliente.html?c=${cliente}">👤 ${cliente.charAt(0).toUpperCase() + cliente.slice(1)} — $${saldo}</a>
+            <button class="edit" onclick="editarSaldo('${cliente}')">✏️ Editar saldo</button>
+            <button class="danger" onclick="borrarMovimientos('${cliente}')">🧹 Borrar movimientos</button>
+            <button class="delete" onclick="eliminarCliente('${cliente}')">❌ Eliminar cliente</button>
+          `;
+          container.appendChild(div);
+        }
+      }
     }
 
     function agregarCliente() {
       const nombre = prompt("🧾 Ingresa el nombre del nuevo cliente:");
       if (!nombre) return;
       const clave = nombre.toLowerCase().replace(/\s+/g, '');
-      if (localStorage.getItem(`saldo_${clave}`)) {
-        alert("⚠️ Este cliente ya existe.");
-        return;
-      }
       const monto = prompt(`💰 ¿Cuál es el saldo inicial para ${nombre}?`);
       if (!monto || isNaN(monto)) return alert("❌ El saldo debe ser un número.");
       localStorage.setItem(`saldo_${clave}`, parseInt(monto));
@@ -70,26 +72,51 @@
       renderClientes();
     }
 
+    function editarSaldo(cliente) {
+      const actual = localStorage.getItem(`saldo_${cliente}`);
+      const nuevo = prompt(`✏️ Saldo actual: $${actual}\nIngresa el nuevo saldo para ${cliente}:`);
+      if (nuevo === null || isNaN(nuevo)) return alert("❌ Debes ingresar un número válido.");
+      localStorage.setItem(`saldo_${cliente}`, parseInt(nuevo));
+      alert(`✅ Saldo de ${cliente} actualizado a $${nuevo}.`);
+      renderClientes();
+    }
+
     function borrarMovimientos(nombre) {
       const confirmar = confirm(`¿Seguro que deseas borrar los movimientos de ${nombre}? El saldo se mantendrá.`);
       if (!confirmar) return;
       localStorage.removeItem(`movimientos_${nombre}`);
       alert(`✅ Movimientos de ${nombre} eliminados.`);
+      renderClientes();
+    }
+
+    function eliminarCliente(nombre) {
+      const confirmar = confirm(`⚠️ Esto eliminará el cliente ${nombre}, su saldo y movimientos. ¿Estás seguro?`);
+      if (!confirmar) return;
+      localStorage.removeItem(`saldo_${nombre}`);
+      localStorage.removeItem(`movimientos_${nombre}`);
+      alert(`❌ Cliente ${nombre} eliminado.`);
+      renderClientes();
     }
 
     function borrarTodosLosHistoriales() {
-      const claves = Object.keys(localStorage).filter(k => k.startsWith("movimientos_"));
+      const claves = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k.startsWith("movimientos_")) claves.push(k);
+      }
       claves.forEach(k => localStorage.removeItem(k));
       alert("🧹 Historiales eliminados correctamente.");
+      renderClientes();
     }
 
     function descargarBackup() {
       const datos = {};
-      Object.keys(localStorage).forEach(k => {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
         if (k.startsWith("saldo_") || k.startsWith("movimientos_")) {
           datos[k] = JSON.parse(localStorage.getItem(k));
         }
-      });
+      }
       const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -102,11 +129,14 @@
     function borrarDatos() {
       const confirmar = confirm("⚠️ ¿Estás seguro de que deseas borrar TODOS los datos?");
       if (!confirmar) return;
-      Object.keys(localStorage).forEach(k => {
+      const claves = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
         if (k.startsWith("saldo_") || k.startsWith("movimientos_")) {
-          localStorage.removeItem(k);
+          claves.push(k);
         }
-      });
+      }
+      claves.forEach(k => localStorage.removeItem(k));
       alert("🗑️ Todos los datos eliminados.");
       renderClientes();
     }
@@ -130,7 +160,6 @@
       reader.readAsText(file);
     });
 
-    // Ejecutar al cargar
     renderClientes();
   </script>
 </body>
