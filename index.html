@@ -1,144 +1,97 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Panel Polobar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Polobar - Panel Principal</title>
   <style>
-    body { background: #111; color: white; font-family: sans-serif; padding: 20px; }
-    .card { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
-    .card a { color: #ff5050; text-decoration: none; font-weight: bold; }
-    .danger { background: #aa0000; color: white; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; }
-    .global-actions button { margin: 6px; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; }
-    .clean { background: #4444aa; color: white; }
-    .download { background: #008800; color: white; }
-    .upload { background: #888800; color: black; }
-    .footer { margin-top: 30px; color: #aaa; text-align: center; font-size: 14px; }
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #c10000;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      color: #ffffff;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      display: block;
+      margin: 10px auto;
+      padding: 15px 30px;
+      background-color: #c10000;
+      color: white;
+      text-decoration: none;
+      font-size: 18px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 300px;
+      transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #900000;
+    }
+
+    .footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #888;
+    }
   </style>
 </head>
 <body>
-  <h1>📋 Panel Polobar</h1>
-  <div id="clientes"></div>
 
-  <div class="card">
-    <button onclick="agregarCliente()" style="background: #3333aa; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;">
-      ➕ Agregar cliente
-    </button>
+  <h1>Polobar</h1>
+  <h2>Panel de clientes</h2>
+
+  <!-- Enlaces de acceso para los clientes -->
+  <a class="btn" href="cliente.html?cliente=edwin">Edwin Calderón</a>
+  <a class="btn" href="cliente.html?cliente=camilo">Camilo Mahecha</a>
+  <a class="btn" href="cliente.html?cliente=cristian">Cristian Sotelo</a>
+
+  <h2>Administrador</h2>
+  <a class="btn" href="admin.html">Panel de Administración</a>
+
+  <div class="footer">
+    <p>&copy; 2025 Polobar. Todos los derechos reservados.</p>
   </div>
-
-  <div class="global-actions">
-    <button onclick="borrarTodosLosHistoriales()" class="clean">🧹 Borrar solo los historiales</button>
-    <button onclick="descargarBackup()" class="download">📥 Descargar respaldo (.json)</button>
-    <input type="file" id="fileInput" style="display: none;" accept=".json" />
-    <button onclick="document.getElementById('fileInput').click()" class="upload">📤 Cargar respaldo (.json)</button>
-    <button onclick="borrarDatos()" class="danger">🗑️ Borrar todos los datos</button>
-  </div>
-
-  <div class="footer">© Polobar 2025</div>
 
   <script>
-    function renderClientes() {
-      const container = document.getElementById("clientes");
-      container.innerHTML = "";
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key.startsWith("saldo_")) {
-          const cliente = key.replace("saldo_", "");
-          const saldo = localStorage.getItem(key);
-          const div = document.createElement("div");
-          div.className = "card";
-          div.innerHTML = \`
-            <a href="cliente.html?c=\${cliente}">👤 \${cliente.charAt(0).toUpperCase() + cliente.slice(1)} — $\${saldo}</a><br/>
-            <button onclick="borrarMovimientos('\${cliente}')" class="danger">🗑️ Borrar movimientos</button>
-          \`;
-          container.appendChild(div);
-        }
-      }
-    }
-
-    function borrarMovimientos(nombre) {
-      const confirmar = confirm(\`¿Seguro que deseas borrar los movimientos de \${nombre}? El saldo se mantendrá.\`);
-      if (!confirmar) return;
-      localStorage.removeItem(\`movimientos_\${nombre}\`);
-      alert(\`✅ Movimientos de \${nombre} eliminados.\`);
-      location.reload();
-    }
-
-    function borrarTodosLosHistoriales() {
-      const claves = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k.startsWith("movimientos_")) claves.push(k);
-      }
-      claves.forEach(k => localStorage.removeItem(k));
-      alert("🧹 Historiales eliminados correctamente.");
-      location.reload();
-    }
-
-    function agregarCliente() {
-      const nombre = prompt("🧾 Ingresa el nombre del nuevo cliente:");
-      if (!nombre) return;
-      const clave = nombre.toLowerCase().replace(/\s+/g, '');
-      const monto = prompt(\`💰 ¿Cuál es el saldo inicial para \${nombre}?\`);
-      if (!monto || isNaN(monto)) return alert("❌ El saldo debe ser un número.");
-      localStorage.setItem(\`saldo_\${clave}\`, parseInt(monto));
-      localStorage.setItem(\`movimientos_\${clave}\`, JSON.stringify([]));
-      alert(\`✅ Cliente \${nombre} agregado con $\${monto}. Recarga la página para verlo.\`);
-      location.reload();
-    }
-
-    function descargarBackup() {
-      const datos = {};
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k.startsWith("saldo_") || k.startsWith("movimientos_")) {
-          datos[k] = JSON.parse(localStorage.getItem(k));
-        }
-      }
-      const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "respaldo_polobar.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function borrarDatos() {
-      const confirmar = confirm("⚠️ ¿Estás seguro de que deseas borrar TODOS los datos?");
-      if (!confirmar) return;
-      const claves = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k.startsWith("saldo_") || k.startsWith("movimientos_")) {
-          claves.push(k);
-        }
-      }
-      claves.forEach(k => localStorage.removeItem(k));
-      alert("🗑️ Todos los datos eliminados.");
-      location.reload();
-    }
-
-    document.getElementById("fileInput").addEventListener("change", function () {
-      const file = this.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        try {
-          const datos = JSON.parse(e.target.result);
-          for (const clave in datos) {
-            localStorage.setItem(clave, JSON.stringify(datos[clave]));
-          }
-          alert("✅ Respaldo cargado exitosamente.");
-          location.reload();
-        } catch (err) {
-          alert("❌ Error al cargar el respaldo.");
-        }
+    // Registrar acceso en localStorage con fecha y hora
+    function registrarAcceso(cliente) {
+      const ahora = new Date();
+      const registro = {
+        fecha: ahora.toLocaleDateString(),
+        hora: ahora.toLocaleTimeString(),
+        accion: "Ingreso desde panel principal"
       };
-      reader.readAsText(file);
-    });
 
-    renderClientes();
+      const clave = `historial_${cliente}`;
+      const historial = JSON.parse(localStorage.getItem(clave)) || [];
+      historial.push(registro);
+      localStorage.setItem(clave, JSON.stringify(historial));
+    }
+
+    // Escuchar clics en enlaces de clientes
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (href.includes("cliente.html?cliente=")) {
+          const cliente = href.split("=")[1];
+          registrarAcceso(cliente);
+        }
+      });
+    });
   </script>
+
 </body>
 </html>
