@@ -66,9 +66,26 @@
 <body>
   <h1>Panel de Administración - Polobar</h1>
 
-  <div class="card"><a href="edwin.html">👤 Edwin Calderón — $200.000</a></div>
-  <div class="card"><a href="camilo.html">👤 Camilo Mahecha — $150.000</a></div>
-  <div class="card"><a href="cristian.html">👤 Cristian Sotelo — $160.000</a></div>
+ <div class="card">
+    <a href="edwin.html">👤 Edwin Calderón — $200.000</a>
+    <button onclick="borrarMovimientos('edwin')" style="margin-top: 10px; padding: 6px 12px; background: darkred; color: white; border: none; border-radius: 6px; font-size: 14px;">
+        🗑️ Borrar movimientos
+    </button>
+</div>
+
+<div class="card">
+    <a href="camilo.html">👤 Camilo Mahecha — $150.000</a>
+    <button onclick="borrarMovimientos('camilo')" style="margin-top: 10px; padding: 6px 12px; background: darkred; color: white; border: none; border-radius: 6px; font-size: 14px;">
+        🗑️ Borrar movimientos
+    </button>
+</div>
+
+<div class="card">
+    <a href="cristian.html">👤 Cristian Sotelo — $160.000</a>
+    <button onclick="borrarMovimientos('cristian')" style="margin-top: 10px; padding: 6px 12px; background: darkred; color: white; border: none; border-radius: 6px; font-size: 14px;">
+        🗑️ Borrar movimientos
+    </button>
+</div>
 
   <button onclick="descargarBackup()" style="background: green; color: white;">
     📥 Descargar respaldo (.json)
@@ -86,6 +103,14 @@
   <div class="footer">© Polobar 2025</div>
 
   <script>
+    function borrarMovimientos(nombre) {
+    const confirmar = confirm(`¿Seguro que deseas borrar los movimientos de ${nombre}? El saldo se mantendrá.`);
+    if (!confirmar) return;
+
+    localStorage.removeItem(`movimientos_${nombre}`);
+    alert(`✅ Movimientos de ${nombre} eliminados.`);
+    location.reload();
+}
     function descargarBackup() {
       const claves = [
         'movimientos_edwin', 'movimientos_camilo', 'movimientos_cristian',
