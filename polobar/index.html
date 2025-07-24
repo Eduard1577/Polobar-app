@@ -1,114 +1,144 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración - Polobar</title>
-    <style>
-        body {
-            background: linear-gradient(to right, #000000, #1c1c1c);
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 20px;
-            margin: 0;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2em;
-            color: #ff2d2d;
-        }
-
-        .card {
-            background: #2b2b2b;
-            border: 2px solid #ff2d2d;
-            border-radius: 16px;
-            padding: 20px;
-            margin: 15px auto;
-            max-width: 400px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-        }
-
-        .card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 6px 12px rgba(255, 45, 45, 0.4);
-        }
-
-        a {
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 18px;
-            display: block;
-        }
-
-        .footer {
-            text-align: center;
-            font-size: 14px;
-            color: #888;
-            margin-top: 40px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Panel de Administración - Polobar</h1>
-
-    <div class="card"><a href="edwin.html">👤 Edwin Calderón — $200.000</a></div>
-    <div class="card"><a href="camilo.html">👤 Camilo Mahecha — $150.000</a></div>
-    <div class="card"><a href="cristian.html">👤 Cristian Sotelo — $160.000</a></div>
-
-    <button onclick="descargarBackup()" style="margin-top: 20px; padding: 10px 20px; background: green; color: white; border: none; border-radius: 8px; font-size: 16px;">
-        📥 Descargar respaldo (.json)
-    </button>
-
-    <input type="file" id="fileInput" style="display: none;" accept=".json" />
-    <button onclick="document.getElementById('fileInput').click()" style="margin-top: 10px; padding: 10px 20px; background: #444; color: white; border: none; border-radius: 8px; font-size: 16px;">
-        📤 Cargar respaldo (.json)
-    </button>
-
-    <div class="footer" style="margin-top: 30px;">© Polobar 2025</div>
-
-    <script>
-    function descargarBackup() {
-        const clientes = ['edwin', 'camilo', 'cristian'];
-        const respaldo = {};
-
-        clientes.forEach(cliente => {
-            const data = localStorage.getItem(`movimientos_${cliente}`);
-            respaldo[cliente] = data ? JSON.parse(data) : [];
-        });
-
-        const blob = new Blob([JSON.stringify(respaldo, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'respaldo_polobar.json';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración - Polobar</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #000000, #1c1c1c);
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      margin: 0;
     }
 
-    document.getElementById('fileInput').addEventListener('change', function (event) {
-        const file = event.target.files[0];
-        if (!file) return;
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2em;
+      color: #ff2d2d;
+    }
 
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            try {
-                const data = JSON.parse(e.target.result);
-                for (const cliente in data) {
-                    localStorage.setItem(`movimientos_${cliente}`, JSON.stringify(data[cliente]));
-                }
-                alert("✅ Respaldo restaurado correctamente.");
-            } catch (err) {
-                alert("❌ Error al cargar el archivo. Asegúrate de que sea un respaldo válido.");
-            }
-        };
-        reader.readAsText(file);
+    .card {
+      background: #2b2b2b;
+      border: 2px solid #ff2d2d;
+      border-radius: 16px;
+      padding: 20px;
+      margin: 15px auto;
+      max-width: 400px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 6px 12px rgba(255, 45, 45, 0.4);
+    }
+
+    a {
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 18px;
+      display: block;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 14px;
+      color: #888;
+      margin-top: 40px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Panel de Administración - Polobar</h1>
+
+  <div class="card"><a href="edwin.html">👤 Edwin Calderón — $200.000</a></div>
+  <div class="card"><a href="camilo.html">👤 Camilo Mahecha — $150.000</a></div>
+  <div class="card"><a href="cristian.html">👤 Cristian Sotelo — $160.000</a></div>
+
+  <button onclick="descargarBackup()" style="background: green; color: white;">
+    📥 Descargar respaldo (.json)
+  </button>
+
+  <input type="file" id="fileInput" style="display: none;" accept=".json" />
+  <button onclick="document.getElementById('fileInput').click()" style="background: #444; color: white;">
+    📤 Cargar respaldo (.json)
+  </button>
+
+  <button onclick="borrarDatos()" style="background: darkred; color: white;">
+    🗑️ Borrar todos los datos
+  </button>
+
+  <div class="footer">© Polobar 2025</div>
+
+  <script>
+    function descargarBackup() {
+      const claves = [
+        'movimientos_edwin', 'movimientos_camilo', 'movimientos_cristian',
+        'saldo_edwin', 'saldo_camilo', 'saldo_cristian'
+      ];
+      const datos = {};
+
+      claves.forEach(clave => {
+        datos[clave] = JSON.parse(localStorage.getItem(clave)) || [];
+      });
+
+      const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "respaldo_polobar.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById("fileInput").addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const datos = JSON.parse(e.target.result);
+          for (const clave in datos) {
+            localStorage.setItem(clave, JSON.stringify(datos[clave]));
+          }
+          alert("✅ Respaldo cargado exitosamente.");
+          location.reload();
+        } catch (err) {
+          alert("❌ Error al cargar el respaldo. Verifica el formato del archivo.");
+        }
+      };
+      reader.readAsText(file);
     });
-    </script>
+
+    function borrarDatos() {
+      const confirmar = confirm("⚠️ ¿Estás seguro de que deseas borrar TODOS los datos? Esta acción no se puede deshacer.");
+      if (!confirmar) return;
+
+      const claves = [
+        'movimientos_edwin', 'movimientos_camilo', 'movimientos_cristian',
+        'saldo_edwin', 'saldo_camilo', 'saldo_cristian'
+      ];
+
+      claves.forEach(clave => localStorage.removeItem(clave));
+      alert("🗑️ Todos los datos han sido eliminados.");
+      location.reload();
+    }
+  </script>
 </body>
 </html>
