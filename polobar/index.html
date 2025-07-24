@@ -61,56 +61,85 @@
       margin-left: auto;
       margin-right: auto;
     }
+
+    .danger {
+      background: darkred;
+      color: white;
+    }
+
+    .clean {
+      background: #b22222;
+      color: white;
+    }
+
+    .download {
+      background: green;
+      color: white;
+    }
+
+    .upload {
+      background: #444;
+      color: white;
+    }
+
+    .global-actions {
+      max-width: 400px;
+      margin: 30px auto;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <h1>Panel de Administración - Polobar</h1>
 
- <div class="card">
+  <div class="card">
     <a href="edwin.html">👤 Edwin Calderón — $200.000</a>
-    <button onclick="borrarMovimientos('edwin')" style="margin-top: 10px; padding: 6px 12px; background: darkred; color: white; border: none; border-radius: 6px; font-size: 14px;">
-        🗑️ Borrar movimientos
-    </button>
-</div>
+    <button onclick="borrarMovimientos('edwin')" class="danger">🗑️ Borrar movimientos</button>
+  </div>
 
-<div class="card">
+  <div class="card">
     <a href="camilo.html">👤 Camilo Mahecha — $150.000</a>
-    <button onclick="borrarMovimientos('camilo')" style="margin-top: 10px; padding: 6px 12px; background: darkred; color: white; border: none; border-radius: 6px; font-size: 14px;">
-        🗑️ Borrar movimientos
-    </button>
-</div>
+    <button onclick="borrarMovimientos('camilo')" class="danger">🗑️ Borrar movimientos</button>
+  </div>
 
-<div class="card">
+  <div class="card">
     <a href="cristian.html">👤 Cristian Sotelo — $160.000</a>
-    <button onclick="borrarMovimientos('cristian')" style="margin-top: 10px; padding: 6px 12px; background: darkred; color: white; border: none; border-radius: 6px; font-size: 14px;">
-        🗑️ Borrar movimientos
-    </button>
-</div>
+    <button onclick="borrarMovimientos('cristian')" class="danger">🗑️ Borrar movimientos</button>
+  </div>
 
-  <button onclick="descargarBackup()" style="background: green; color: white;">
-    📥 Descargar respaldo (.json)
-  </button>
+  <div class="global-actions">
+    <button onclick="borrarTodosLosHistoriales()" class="clean">🧹 Borrar solo los historiales</button>
+    <button onclick="descargarBackup()" class="download">📥 Descargar respaldo (.json)</button>
 
-  <input type="file" id="fileInput" style="display: none;" accept=".json" />
-  <button onclick="document.getElementById('fileInput').click()" style="background: #444; color: white;">
-    📤 Cargar respaldo (.json)
-  </button>
+    <input type="file" id="fileInput" style="display: none;" accept=".json" />
+    <button onclick="document.getElementById('fileInput').click()" class="upload">📤 Cargar respaldo (.json)</button>
 
-  <button onclick="borrarDatos()" style="background: darkred; color: white;">
-    🗑️ Borrar todos los datos
-  </button>
+    <button onclick="borrarDatos()" class="danger">🗑️ Borrar todos los datos</button>
+  </div>
 
   <div class="footer">© Polobar 2025</div>
 
   <script>
     function borrarMovimientos(nombre) {
-    const confirmar = confirm(`¿Seguro que deseas borrar los movimientos de ${nombre}? El saldo se mantendrá.`);
-    if (!confirmar) return;
+      const confirmar = confirm(`¿Seguro que deseas borrar los movimientos de ${nombre}? El saldo se mantendrá.`);
+      if (!confirmar) return;
 
-    localStorage.removeItem(`movimientos_${nombre}`);
-    alert(`✅ Movimientos de ${nombre} eliminados.`);
-    location.reload();
-}
+      localStorage.removeItem(`movimientos_${nombre}`);
+      alert(`✅ Movimientos de ${nombre} eliminados.`);
+      location.reload();
+    }
+
+    function borrarTodosLosHistoriales() {
+      const confirmar = confirm("¿Seguro que deseas borrar solo los HISTORIALES? Los saldos no se tocarán.");
+      if (!confirmar) return;
+
+      const claves = ['movimientos_edwin', 'movimientos_camilo', 'movimientos_cristian'];
+      claves.forEach(clave => localStorage.removeItem(clave));
+
+      alert("🧹 Historiales eliminados correctamente.");
+      location.reload();
+    }
+
     function descargarBackup() {
       const claves = [
         'movimientos_edwin', 'movimientos_camilo', 'movimientos_cristian',
