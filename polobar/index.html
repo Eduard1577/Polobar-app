@@ -106,6 +106,12 @@
     <a href="cristian.html">👤 Cristian Sotelo — $160.000</a>
     <button onclick="borrarMovimientos('cristian')" class="danger">🗑️ Borrar movimientos</button>
   </div>
+  
+<div class="card">
+  <button onclick="agregarCliente()" style="background: #3333aa; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;">
+    ➕ Agregar cliente
+  </button>
+</div>
 
   <div class="global-actions">
     <button onclick="borrarTodosLosHistoriales()" class="clean">🧹 Borrar solo los historiales</button>
@@ -139,26 +145,38 @@
       alert("🧹 Historiales eliminados correctamente.");
       location.reload();
     }
+     function agregarCliente() {
+    const nombre = prompt("🧾 Ingresa el nombre del nuevo cliente:");
+    if (!nombre) return;
+
+    const clave = nombre.toLowerCase().replace(/\s+/g, '');
+    const monto = prompt(`💰 ¿Cuál es el saldo inicial para ${nombre}?`);
+    if (!monto || isNaN(monto)) return alert("❌ El saldo debe ser un número.");
+
+    localStorage.setItem(`saldo_${clave}`, parseInt(monto));
+    localStorage.setItem(`movimientos_${clave}`, JSON.stringify([]));
+
+    alert(`✅ Cliente ${nombre} agregado con $${monto}. Recarga la página para verlo.`);
+  }
 
     function descargarBackup() {
-      const claves = [
-        'movimientos_edwin', 'movimientos_camilo', 'movimientos_cristian',
-        'saldo_edwin', 'saldo_camilo', 'saldo_cristian'
-      ];
-      const datos = {};
-
-      claves.forEach(clave => {
-        datos[clave] = JSON.parse(localStorage.getItem(clave)) || [];
-      });
-
-      const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "respaldo_polobar.json";
-      a.click();
-      URL.revokeObjectURL(url);
+  const datos = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const clave = localStorage.key(i);
+    if (clave.startsWith("saldo_") || clave.startsWith("movimientos_")) {
+      datos[clave] = JSON.parse(localStorage.getItem(clave));
     }
+  }
+
+  const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "respaldo_polobar.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 
     document.getElementById("fileInput").addEventListener("change", function () {
       const file = this.files[0];
@@ -180,19 +198,23 @@
       reader.readAsText(file);
     });
 
-    function borrarDatos() {
-      const confirmar = confirm("⚠️ ¿Estás seguro de que deseas borrar TODOS los datos? Esta acción no se puede deshacer.");
-      if (!confirmar) return;
+   function borrarDatos() {
+  const confirmar = confirm("⚠️ ¿Estás seguro de que deseas borrar TODOS los datos? Esta acción no se puede deshacer.");
+  if (!confirmar) return;
 
-      const claves = [
-        'movimientos_edwin', 'movimientos_camilo', 'movimientos_cristian',
-        'saldo_edwin', 'saldo_camilo', 'saldo_cristian'
-      ];
-
-      claves.forEach(clave => localStorage.removeItem(clave));
-      alert("🗑️ Todos los datos han sido eliminados.");
-      location.reload();
+  const clavesABorrar = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const clave = localStorage.key(i);
+    if (clave.startsWith("saldo_") || clave.startsWith("movimientos_")) {
+      clavesABorrar.push(clave);
     }
+  }
+
+  clavesABorrar.forEach(clave => localStorage.removeItem(clave));
+  alert("🗑️ Todos los datos han sido eliminados.");
+  location.reload();
+}
+
   </script>
 </body>
 </html>
