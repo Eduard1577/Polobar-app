@@ -57,33 +57,58 @@
     <div class="card"><a href="edwin.html">👤 Edwin Calderón — $200.000</a></div>
     <div class="card"><a href="camilo.html">👤 Camilo Mahecha — $150.000</a></div>
     <div class="card"><a href="cristian.html">👤 Cristian Sotelo — $160.000</a></div>
+
     <button onclick="descargarBackup()" style="margin-top: 20px; padding: 10px 20px; background: green; color: white; border: none; border-radius: 8px; font-size: 16px;">
-    Descargar respaldo (.json)
-</button>
+        📥 Descargar respaldo (.json)
+    </button>
 
+    <input type="file" id="fileInput" style="display: none;" accept=".json" />
+    <button onclick="document.getElementById('fileInput').click()" style="margin-top: 10px; padding: 10px 20px; background: #444; color: white; border: none; border-radius: 8px; font-size: 16px;">
+        📤 Cargar respaldo (.json)
+    </button>
 
-    <div class="footer">© Polobar 2025</div>
+    <div class="footer" style="margin-top: 30px;">© Polobar 2025</div>
+
     <script>
-function descargarBackup() {
-    const clientes = ['edwin', 'camilo', 'cristian'];
-    const respaldo = {};
+    function descargarBackup() {
+        const clientes = ['edwin', 'camilo', 'cristian'];
+        const respaldo = {};
 
-    clientes.forEach(cliente => {
-        const data = localStorage.getItem(`movimientos_${cliente}`);
-        respaldo[cliente] = data ? JSON.parse(data) : [];
+        clientes.forEach(cliente => {
+            const data = localStorage.getItem(`movimientos_${cliente}`);
+            respaldo[cliente] = data ? JSON.parse(data) : [];
+        });
+
+        const blob = new Blob([JSON.stringify(respaldo, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'respaldo_polobar.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('fileInput').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                for (const cliente in data) {
+                    localStorage.setItem(`movimientos_${cliente}`, JSON.stringify(data[cliente]));
+                }
+                alert("✅ Respaldo restaurado correctamente.");
+            } catch (err) {
+                alert("❌ Error al cargar el archivo. Asegúrate de que sea un respaldo válido.");
+            }
+        };
+        reader.readAsText(file);
     });
-
-    const blob = new Blob([JSON.stringify(respaldo, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'respaldo_polobar.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
-</script>
+    </script>
 </body>
 </html>
