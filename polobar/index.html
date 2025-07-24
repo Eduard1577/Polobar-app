@@ -3,26 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel - Polobar</title>
+    <title>Panel de Administración - Polobar</title>
     <style>
-        body { background-color: #000; color: #fff; font-family: Arial, sans-serif; padding: 20px; }
-        .card { background: #8B0000; border-radius: 16px; padding: 20px; margin: 10px 0; }
-        a { color: #fff; text-decoration: none; font-size: 18px; }
+        body {
+            background: linear-gradient(to right, #000000, #1c1c1c);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+            color: #ff2d2d;
+        }
+
+        .card {
+            background: #2b2b2b;
+            border: 2px solid #ff2d2d;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 15px auto;
+            max-width: 400px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 12px rgba(255, 45, 45, 0.4);
+        }
+
+        a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 18px;
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #888;
+            margin-top: 40px;
+        }
     </style>
 </head>
 <body>
-    <script>
-    const claveCorrecta = "1234";
-    const ingreso = prompt("🔐 Ingresa la clave para acceder al panel de administración:");
+    <h1>Panel de Administración - Polobar</h1>
 
-    if (ingreso !== claveCorrecta) {
-        alert("❌ Clave incorrecta. No tienes acceso.");
-        document.body.innerHTML = ""; // Borra el contenido si la clave está mal
-    }
-</script>
-    <h1>Panel de Administración</h1>
-    <div class="card"><a href="edwin.html">Edwin Calderón - $200.000</a></div>
-    <div class="card"><a href="camilo.html">Camilo Mahecha - $150.000</a></div>
-    <div class="card"><a href="cristian.html">Cristian Sotelo - $160.000</a></div>
+    <div class="card"><a href="edwin.html">👤 Edwin Calderón — $200.000</a></div>
+    <div class="card"><a href="camilo.html">👤 Camilo Mahecha — $150.000</a></div>
+    <div class="card"><a href="cristian.html">👤 Cristian Sotelo — $160.000</a></div>
+
+    <div class="footer">© Polobar 2025</div>
 </body>
 </html>
