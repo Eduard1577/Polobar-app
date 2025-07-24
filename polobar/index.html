@@ -1,117 +1,72 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de Administración - Polobar</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Panel de administración – Polobar</title>
   <style>
     body {
-      background: linear-gradient(to right, #000000, #1c1c1c);
-      color: #ffffff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: sans-serif;
+      background: #111;
+      color: white;
       padding: 20px;
-      margin: 0;
     }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 2em;
-      color: #ff2d2d;
-    }
-
     .card {
-      background: #2b2b2b;
-      border: 2px solid #ff2d2d;
-      border-radius: 16px;
-      padding: 20px;
-      margin: 15px auto;
-      max-width: 400px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+      background: #222;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px #000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-
-    .card:hover {
-      transform: scale(1.02);
-      box-shadow: 0 6px 12px rgba(255, 45, 45, 0.4);
-    }
-
-    a {
-      color: #ffffff;
+    .card a {
+      color: #fff;
       text-decoration: none;
-      font-size: 18px;
-      display: block;
+      font-weight: bold;
     }
-
-    .footer {
-      text-align: center;
-      font-size: 14px;
-      color: #888;
-      margin-top: 40px;
-    }
-
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
+    .card button {
+      background: #aa3333;
+      color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 6px;
       cursor: pointer;
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
     }
-
-    .danger {
-      background: darkred;
-      color: white;
-    }
-
-    .clean {
-      background: #b22222;
-      color: white;
-    }
-
-    .download {
-      background: green;
-      color: white;
-    }
-
-    .upload {
-      background: #444;
-      color: white;
-    }
-
     .global-actions {
-      max-width: 400px;
-      margin: 30px auto;
+      margin-top: 30px;
+    }
+    .global-actions button {
+      margin: 6px 4px;
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .clean { background: orange; color: #000; }
+    .download { background: #2a8f2a; color: white; }
+    .upload { background: #3388cc; color: white; }
+    .danger { background: #aa3333; color: white; }
+    .footer {
+      margin-top: 40px;
       text-align: center;
+      color: gray;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <h1>Panel de Administración - Polobar</h1>
+  <h1>🔧 Panel de administración - Polobar</h1>
+
+  <div id="clientesContainer"></div>
 
   <div class="card">
-    <a href="edwin.html">👤 Edwin Calderón — $200.000</a>
-    <button onclick="borrarMovimientos('edwin')" class="danger">🗑️ Borrar movimientos</button>
+    <button onclick="agregarCliente()" style="background: #3333aa; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;">
+      ➕ Agregar cliente
+    </button>
   </div>
-
-  <div class="card">
-    <a href="camilo.html">👤 Camilo Mahecha — $150.000</a>
-    <button onclick="borrarMovimientos('camilo')" class="danger">🗑️ Borrar movimientos</button>
-  </div>
-
-  <div class="card">
-    <a href="cristian.html">👤 Cristian Sotelo — $160.000</a>
-    <button onclick="borrarMovimientos('cristian')" class="danger">🗑️ Borrar movimientos</button>
-  </div>
-  
-<div class="card">
-  <button onclick="agregarCliente()" style="background: #3333aa; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;">
-    ➕ Agregar cliente
-  </button>
-</div>
 
   <div class="global-actions">
     <button onclick="borrarTodosLosHistoriales()" class="clean">🧹 Borrar solo los historiales</button>
@@ -126,62 +81,85 @@
   <div class="footer">© Polobar 2025</div>
 
   <script>
-    function borrarMovimientos(nombre) {
-      const confirmar = confirm(`¿Seguro que deseas borrar los movimientos de ${nombre}? El saldo se mantendrá.`);
-      if (!confirmar) return;
+    const container = document.getElementById("clientesContainer");
 
+    function mostrarClientes() {
+      container.innerHTML = "";
+      const claves = Object.keys(localStorage).filter(k => k.startsWith("saldo_"));
+
+      claves.forEach(clave => {
+        const cliente = clave.replace("saldo_", "");
+        const nombre = cliente.charAt(0).toUpperCase() + cliente.slice(1);
+        const saldo = localStorage.getItem(clave) || 0;
+
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <a href="${cliente}.html">👤 ${nombre} — $${saldo}</a>
+          <button onclick="borrarMovimientos('${cliente}')" class="danger">🗑️ Borrar movimientos</button>
+        `;
+        container.appendChild(div);
+      });
+
+      if (claves.length === 0) {
+        container.innerHTML = "<p>No hay clientes registrados.</p>";
+      }
+    }
+
+    function borrarMovimientos(nombre) {
+      const confirmar = confirm(`¿Borrar historial de movimientos de ${nombre}? El saldo no se toca.`);
+      if (!confirmar) return;
       localStorage.removeItem(`movimientos_${nombre}`);
       alert(`✅ Movimientos de ${nombre} eliminados.`);
       location.reload();
     }
 
-    function borrarTodosLosHistoriales() {
-      const confirmar = confirm("¿Seguro que deseas borrar solo los HISTORIALES? Los saldos no se tocarán.");
-      if (!confirmar) return;
-
-      const claves = ['movimientos_edwin', 'movimientos_camilo', 'movimientos_cristian'];
-      claves.forEach(clave => localStorage.removeItem(clave));
-
-      alert("🧹 Historiales eliminados correctamente.");
+    function agregarCliente() {
+      const nombre = prompt("🧾 Ingresa el nombre del nuevo cliente:");
+      if (!nombre) return;
+      const clave = nombre.toLowerCase().replace(/\s+/g, '');
+      const monto = prompt(`💰 Saldo inicial para ${nombre}:`);
+      if (!monto || isNaN(monto)) return alert("❌ El saldo debe ser un número.");
+      localStorage.setItem(`saldo_${clave}`, parseInt(monto));
+      localStorage.setItem(`movimientos_${clave}`, JSON.stringify([]));
+      alert(`✅ Cliente ${nombre} agregado con $${monto}.`);
       location.reload();
     }
-     function agregarCliente() {
-    const nombre = prompt("🧾 Ingresa el nombre del nuevo cliente:");
-    if (!nombre) return;
 
-    const clave = nombre.toLowerCase().replace(/\s+/g, '');
-    const monto = prompt(`💰 ¿Cuál es el saldo inicial para ${nombre}?`);
-    if (!monto || isNaN(monto)) return alert("❌ El saldo debe ser un número.");
+    function borrarTodosLosHistoriales() {
+      const confirmar = confirm("¿Seguro que deseas borrar solo los historiales? Los saldos NO se borran.");
+      if (!confirmar) return;
 
-    localStorage.setItem(`saldo_${clave}`, parseInt(monto));
-    localStorage.setItem(`movimientos_${clave}`, JSON.stringify([]));
-
-    alert(`✅ Cliente ${nombre} agregado con $${monto}. Recarga la página para verlo.`);
-  }
+      for (let i = 0; i < localStorage.length; i++) {
+        const clave = localStorage.key(i);
+        if (clave.startsWith("movimientos_")) {
+          localStorage.removeItem(clave);
+        }
+      }
+      alert("🧹 Historiales eliminados.");
+      location.reload();
+    }
 
     function descargarBackup() {
-  const datos = {};
-  for (let i = 0; i < localStorage.length; i++) {
-    const clave = localStorage.key(i);
-    if (clave.startsWith("saldo_") || clave.startsWith("movimientos_")) {
-      datos[clave] = JSON.parse(localStorage.getItem(clave));
+      const datos = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const clave = localStorage.key(i);
+        if (clave.startsWith("saldo_") || clave.startsWith("movimientos_")) {
+          datos[clave] = JSON.parse(localStorage.getItem(clave));
+        }
+      }
+      const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "respaldo_polobar.json";
+      a.click();
+      URL.revokeObjectURL(url);
     }
-  }
-
-  const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "respaldo_polobar.json";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 
     document.getElementById("fileInput").addEventListener("change", function () {
       const file = this.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = function (e) {
         try {
@@ -192,29 +170,31 @@
           alert("✅ Respaldo cargado exitosamente.");
           location.reload();
         } catch (err) {
-          alert("❌ Error al cargar el respaldo. Verifica el formato del archivo.");
+          alert("❌ Error al cargar respaldo.");
         }
       };
       reader.readAsText(file);
     });
 
-   function borrarDatos() {
-  const confirmar = confirm("⚠️ ¿Estás seguro de que deseas borrar TODOS los datos? Esta acción no se puede deshacer.");
-  if (!confirmar) return;
+    function borrarDatos() {
+      const confirmar = confirm("⚠️ ¿Borrar todos los datos? Esta acción no se puede deshacer.");
+      if (!confirmar) return;
 
-  const clavesABorrar = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const clave = localStorage.key(i);
-    if (clave.startsWith("saldo_") || clave.startsWith("movimientos_")) {
-      clavesABorrar.push(clave);
+      const clavesABorrar = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const clave = localStorage.key(i);
+        if (clave.startsWith("saldo_") || clave.startsWith("movimientos_")) {
+          clavesABorrar.push(clave);
+        }
+      }
+
+      clavesABorrar.forEach(clave => localStorage.removeItem(clave));
+      alert("🗑️ Todos los datos han sido eliminados.");
+      location.reload();
     }
-  }
 
-  clavesABorrar.forEach(clave => localStorage.removeItem(clave));
-  alert("🗑️ Todos los datos han sido eliminados.");
-  location.reload();
-}
-
+    // Mostrar los clientes al cargar
+    mostrarClientes();
   </script>
 </body>
 </html>
