@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin | Polobar</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h2 {
+      color: #fff;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #c00;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #e00;
+    }
+    .cliente {
+      background-color: #222;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .link {
+      color: #0cf;
+      font-size: 14px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <h2>Panel de Administración - Polobar</h2>
+
+  <label>👤 Nombre del cliente</label>
+  <input type="text" id="nombre" placeholder="Ej: Camilo Mahecha"/>
+
+  <label>💰 Saldo inicial</label>
+  <input type="number" id="saldo" placeholder="Ej: 150000" />
+
+  <button onclick="crearCliente()">Crear cliente</button>
+
+  <hr>
+  <h3>Clientes existentes:</h3>
+  <div id="lista-clientes">Cargando...</div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDD6RpK7r2-UJXp1EpDtXJPWlsjRDn8gI8",
+      authDomain: "polobar-bfe39.firebaseapp.com",
+      projectId: "polobar-bfe39",
+      storageBucket: "polobar-bfe39.appspot.com",
+      messagingSenderId: "778965477741",
+      appId: "1:778965477741:web:c6984ca8f79f1d10851264"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const listaClientes = document.getElementById("lista-clientes");
+
+    function crearCliente() {
+      const nombre = document.getElementById("nombre").value.trim();
+      const saldo = parseInt(document.getElementById("saldo").value.trim()) || 0;
+
+      if (!nombre) return alert("Ingresa el nombre del cliente");
+
+      const id = nombre.toLowerCase().replace(/\s+/g, "_");
+
+      db.collection("clientes").doc(id).set({
+        nombre: nombre,
+        saldo: saldo,
+        historial: []
+      }).then(() => {
+        alert("✅ Cliente creado correctamente");
+        document.getElementById("nombre").value = "";
+        document.getElementById("saldo").value = "";
+        cargarClientes();
+      }).catch((err) => {
+        alert("❌ Error al crear el cliente");
+        console.error(err);
+      });
+    }
+
+    function cargarClientes() {
+      db.collection("clientes").get().then(snapshot => {
+        listaClientes.innerHTML = "";
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.className = "cliente";
+          div.innerHTML = `
+            <strong>${data.nombre}</strong><br>
+            Saldo: $${data.saldo}<br>
+            <div class="link">🔗 Enlace: <a href="cliente.html?c=${doc.id}" target="_blank">cliente.html?c=${doc.id}</a></div>
+          `;
+          listaClientes.appendChild(div);
+        });
+      });
+    }
+
+    cargarClientes();
+  </script>
+</body>
+</html>
