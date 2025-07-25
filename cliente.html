@@ -42,7 +42,7 @@
       margin-left: auto;
       margin-right: auto;
     }
-    .item {
+    #historial li {
       border-bottom: 1px solid #555;
       padding: 5px 0;
     }
@@ -53,8 +53,8 @@
   </style>
 </head>
 <body>
-  <h2 id="cliente-nombre">👤 Cargando nombre...</h2>
-  <div id="saldo">Cargando saldo...</div>
+  <h2 id="nombreCliente">👤 Cargando nombre...</h2>
+  <p>Saldo disponible: <span id="saldo">$0</span></p>
   <input type="number" id="monto" placeholder="Monto" />
   <br/>
   <button onclick="registrarMovimiento('abono')">Abono</button>
@@ -62,17 +62,16 @@
 
   <div id="historial">
     <h3>Historial</h3>
-    <div id="movimientos"></div>
+    <ul id="historial"></ul>
   </div>
 
   <div class="footer">© Polobar 2025</div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <!-- Firebase Modular -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  <script>
-    // Configuración Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDD6RpK7r2-UJXp1EpDtXJPWlsjRDn8gI8",
       authDomain: "polobar-bfe39.firebaseapp.com",
@@ -82,82 +81,85 @@
       appId: "1:778965477741:web:c6984ca8f79f1d10851264"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    const params = new URLSearchParams(window.location.search);
-    const clienteID = params.get("c");
+    const urlParams = new URLSearchParams(window.location.search);
+    const clienteId = urlParams.get("c");
+
+    const nombreEl = document.getElementById("nombreCliente");
     const saldoEl = document.getElementById("saldo");
+    const historialEl = document.getElementById("historial");
     const montoInput = document.getElementById("monto");
-    const movimientosEl = document.getElementById("movimientos");
 
-    let clienteRef;
+    let clienteData = null;
+    const docRef = doc(db, "clientes", clienteId);
 
-    if (clienteID) {
-      clienteRef = db.collection("clientes").doc(clienteID);
-
-      // Leer datos
-      clienteRef.onSnapshot((doc) => {
-        if (doc.exists) {
-          const data = doc.data();
-          saldoEl.innerText = "Saldo: $" + data.saldo;
-          mostrarHistorial(data.historial || []);
-        } else {
-          saldoEl.innerText = "Cliente no encontrado.";
-        }
-      });
-    } else {
-      saldoEl.innerText = "Cliente no especificado.";
-    }
-
-    function registrarMovimiento(tipo) {
-      const monto = parseInt(montoInput.value);
-      if (!monto || monto <= 0) {
-        alert("Ingresa un monto válido.");
+    async function cargarCliente() {
+      if (!clienteId) {
+        nombreEl.textContent = "❌ Cliente no especificado";
         return;
       }
 
-      const ahora = new Date();
-      const fecha = ahora.toLocaleString("es-CO");
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) {
+        nombreEl.textContent = "❌ Cliente no encontrado";
+        return;
+      }
 
-      clienteRef.get().then((doc) => {
-        if (doc.exists) {
-          const data = doc.data();
-          let nuevoSaldo = data.saldo;
-          if (tipo === "abono") {
-            nuevoSaldo += monto;
-          } else {
-            nuevoSaldo -= monto;
-          }
-
-          const nuevoMovimiento = {
-            tipo: tipo,
-            monto: monto,
-            fecha: fecha
-          };
-
-          const nuevoHistorial = data.historial || [];
-          nuevoHistorial.push(nuevoMovimiento);
-
-          clienteRef.update({
-            saldo: nuevoSaldo,
-            historial: nuevoHistorial
-          });
-
-          montoInput.value = "";
-        }
-      });
+      clienteData = docSnap.data();
+      nombreEl.textContent = clienteData.nombre || clienteId;
+      saldoEl.textContent = `$${clienteData.saldo}`;
+      mostrarHistorial(clienteData.movimientos || []);
     }
 
     function mostrarHistorial(historial) {
-      movimientosEl.innerHTML = "";
-      historial.slice().reverse().forEach((mov) => {
-        const div = document.createElement("div");
-        div.className = "item";
-        div.innerText = `${mov.fecha} - ${mov.tipo.toUpperCase()}: $${mov.monto}`;
-        movimientosEl.appendChild(div);
+      const lista = historialEl.querySelector("ul");
+      lista.innerHTML = "";
+
+      historial.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+      if (historial.length === 0) {
+        lista.innerHTML = "<li>No hay movimientos aún.</li>";
+        return;
+      }
+
+      historial.forEach((mov) => {
+        const li = document.createElement("li");
+        li.textContent = `${mov.fecha} — ${mov.tipo.toUpperCase()}: $${Math.abs(mov.monto)}`;
+        li.style.color = mov.tipo === "abono" ? "lightgreen" : "red";
+        lista.appendChild(li);
       });
     }
+
+    async function registrarMovimiento(tipo) {
+      const valor = parseInt(montoInput.value);
+      if (isNaN(valor) || valor <= 0) return alert("Monto inválido.");
+
+      const montoFinal = tipo === "abono" ? valor : -valor;
+
+      const nuevoMovimiento = {
+        fecha: new Date().toLocaleString("es-CO"),
+        tipo,
+        monto: montoFinal
+      };
+
+      clienteData.movimientos = clienteData.movimientos || [];
+      clienteData.movimientos.push(nuevoMovimiento);
+      clienteData.saldo += montoFinal;
+
+      await updateDoc(docRef, {
+        saldo: clienteData.saldo,
+        movimientos: clienteData.movimientos
+      });
+
+      montoInput.value = "";
+      cargarCliente();
+    }
+
+    window.registrarMovimiento = registrarMovimiento;
+
+    cargarCliente();
   </script>
 </body>
 </html>
