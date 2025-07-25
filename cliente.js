@@ -27,6 +27,7 @@ async function cargarCliente() {
   }
 
   clienteData = docSnap.data();
+  document.getElementById("cliente-nombre").innerText = `👤 ${clienteData.nombre}`;
   info.innerHTML = `<strong>${clienteData.nombre}</strong><br>Saldo disponible: $${clienteData.saldo}`;
   renderHistorial();
 }
