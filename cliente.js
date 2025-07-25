@@ -1,4 +1,3 @@
-// cliente.js
 import { db } from "./firebase-config.js";
 import {
   doc,
@@ -8,55 +7,69 @@ import {
 
 const urlParams = new URLSearchParams(window.location.search);
 const clienteId = urlParams.get("c");
-const info = document.getElementById("info");
-const historial = document.getElementById("historial");
+
+const nombreEl = document.getElementById("nombreCliente");
+const saldoEl = document.getElementById("saldo");
+const historialEl = document.getElementById("historial");
+const montoInput = document.getElementById("monto");
 
 let clienteData = null;
 const docRef = doc(db, "clientes", clienteId);
 
+// Cargar los datos del cliente desde Firestore
 async function cargarCliente() {
   if (!clienteId) {
-    info.innerText = "❌ Cliente no especificado";
+    nombreEl.textContent = "❌ Cliente no especificado";
     return;
   }
 
   const docSnap = await getDoc(docRef);
   if (!docSnap.exists()) {
-    info.innerText = "❌ Cliente no encontrado";
+    nombreEl.textContent = "❌ Cliente no encontrado";
     return;
   }
 
   clienteData = docSnap.data();
-  document.getElementById("cliente-nombre").innerText = `👤 ${clienteData.nombre}`;
-  info.innerHTML = `<strong>${clienteData.nombre}</strong><br>Saldo disponible: $${clienteData.saldo}`;
-  renderHistorial();
+  nombreEl.textContent = clienteData.nombre || clienteId;
+  saldoEl.textContent = `$${clienteData.saldo}`;
+  mostrarHistorial(clienteData.movimientos || []);
 }
 
-function renderHistorial() {
-  historial.innerHTML = "";
-  if (clienteData.movimientos.length === 0) {
-    historial.innerHTML = "<li>No hay movimientos aún.</li>";
+// Mostrar el historial ordenado por fecha (más reciente primero)
+function mostrarHistorial(historial) {
+  historialEl.innerHTML = "";
+
+  // Ordenar de más reciente a más antiguo
+  historial.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+  if (historial.length === 0) {
+    historialEl.innerHTML = "<li>No hay movimientos aún.</li>";
     return;
   }
-  clienteData.movimientos.slice().reverse().forEach(m => {
+
+  historial.forEach((mov) => {
     const li = document.createElement("li");
-    li.innerText = `${m.fecha} — ${m.monto > 0 ? '+' : ''}${m.monto}`;
-    historial.appendChild(li);
+    li.textContent = `${mov.fecha} — ${mov.tipo.toUpperCase()}: $${mov.monto}`;
+    li.style.color = mov.tipo === "abono" ? "green" : "red";
+    historialEl.appendChild(li);
   });
 }
 
-window.registrarMovimiento = async function () {
-  const montoInput = document.getElementById("monto");
+// Función para registrar movimiento (abono o compra)
+async function registrarMovimiento(tipo) {
   const valor = parseInt(montoInput.value);
-  if (isNaN(valor)) return alert("Monto inválido.");
+  if (isNaN(valor) || valor <= 0) return alert("Monto inválido.");
+
+  const montoFinal = tipo === "abono" ? valor : -valor;
 
   const nuevoMovimiento = {
     fecha: new Date().toLocaleString(),
-    monto: valor
+    tipo,
+    monto: montoFinal
   };
 
   clienteData.movimientos.push(nuevoMovimiento);
-  clienteData.saldo += valor;
+  clienteData.saldo += montoFinal;
 
   await updateDoc(docRef, {
     saldo: clienteData.saldo,
@@ -65,6 +78,12 @@ window.registrarMovimiento = async function () {
 
   montoInput.value = "";
   cargarCliente();
-};
+}
 
+// Asignar funciones a botones
+window.abonar = () => registrarMovimiento("abono");
+window.comprar = () => registrarMovimiento("compra");
+
+// Iniciar
 cargarCliente();
+
