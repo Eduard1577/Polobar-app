@@ -7,7 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-const clienteId = urlParams.get("c") || urlParams.get("id");
+const clienteId = urlParams.get("c");
 const info = document.getElementById("info");
 const historial = document.getElementById("historial");
 
