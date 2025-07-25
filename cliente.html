@@ -1,24 +1,163 @@
-<!-- cliente.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Cliente - Polobar</title>
-  <script type="module" src="cliente.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cliente</title>
   <style>
-    body { background: #111; color: white; font-family: sans-serif; padding: 20px; }
-    .card { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
-    .footer { margin-top: 30px; color: #aaa; text-align: center; font-size: 14px; }
-    input, button { margin-top: 10px; }
+    body {
+      background-color: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    h2 {
+      color: #fff;
+    }
+    #saldo {
+      font-size: 24px;
+      margin: 10px 0;
+    }
+    input {
+      padding: 5px;
+      margin-right: 10px;
+      width: 100px;
+    }
+    button {
+      padding: 5px 15px;
+      background-color: #c00;
+      color: white;
+      border: none;
+      margin: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #e00;
+    }
+    #historial {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .item {
+      border-bottom: 1px solid #555;
+      padding: 5px 0;
+    }
+    .footer {
+      margin-top: 50px;
+      color: #888;
+    }
   </style>
 </head>
 <body>
-  <h1>👤 Cliente</h1>
-  <div id="info"></div>
-  <input type="number" id="monto" placeholder="Monto (+ / -)" />
-  <button onclick="registrarMovimiento()">Registrar movimiento</button>
-  <h3>Historial</h3>
-  <ul id="historial"></ul>
+  <h2>👤 Cliente</h2>
+  <div id="saldo">Cargando saldo...</div>
+  <input type="number" id="monto" placeholder="Monto" />
+  <br/>
+  <button onclick="registrarMovimiento('abono')">Abono</button>
+  <button onclick="registrarMovimiento('compra')">Compra</button>
+
+  <div id="historial">
+    <h3>Historial</h3>
+    <div id="movimientos"></div>
+  </div>
+
   <div class="footer">© Polobar 2025</div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Configuración Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDD6RpK7r2-UJXp1EpDtXJPWlsjRDn8gI8",
+      authDomain: "polobar-bfe39.firebaseapp.com",
+      projectId: "polobar-bfe39",
+      storageBucket: "polobar-bfe39.appspot.com",
+      messagingSenderId: "778965477741",
+      appId: "1:778965477741:web:c6984ca8f79f1d10851264"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const params = new URLSearchParams(window.location.search);
+    const clienteID = params.get("c");
+    const saldoEl = document.getElementById("saldo");
+    const montoInput = document.getElementById("monto");
+    const movimientosEl = document.getElementById("movimientos");
+
+    let clienteRef;
+
+    if (clienteID) {
+      clienteRef = db.collection("clientes").doc(clienteID);
+
+      // Leer datos
+      clienteRef.onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          saldoEl.innerText = "Saldo: $" + data.saldo;
+          mostrarHistorial(data.historial || []);
+        } else {
+          saldoEl.innerText = "Cliente no encontrado.";
+        }
+      });
+    } else {
+      saldoEl.innerText = "Cliente no especificado.";
+    }
+
+    function registrarMovimiento(tipo) {
+      const monto = parseInt(montoInput.value);
+      if (!monto || monto <= 0) {
+        alert("Ingresa un monto válido.");
+        return;
+      }
+
+      const ahora = new Date();
+      const fecha = ahora.toLocaleString("es-CO");
+
+      clienteRef.get().then((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          let nuevoSaldo = data.saldo;
+          if (tipo === "abono") {
+            nuevoSaldo += monto;
+          } else {
+            nuevoSaldo -= monto;
+          }
+
+          const nuevoMovimiento = {
+            tipo: tipo,
+            monto: monto,
+            fecha: fecha
+          };
+
+          const nuevoHistorial = data.historial || [];
+          nuevoHistorial.push(nuevoMovimiento);
+
+          clienteRef.update({
+            saldo: nuevoSaldo,
+            historial: nuevoHistorial
+          });
+
+          montoInput.value = "";
+        }
+      });
+    }
+
+    function mostrarHistorial(historial) {
+      movimientosEl.innerHTML = "";
+      historial.slice().reverse().forEach((mov) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerText = `${mov.fecha} - ${mov.tipo.toUpperCase()}: $${mov.monto}`;
+        movimientosEl.appendChild(div);
+      });
+    }
+  </script>
 </body>
 </html>
